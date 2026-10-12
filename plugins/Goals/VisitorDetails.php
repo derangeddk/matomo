@@ -36,7 +36,7 @@ class VisitorDetails extends VisitorDetailsAbstract
         $visitor['goalConversions'] = count($goalConversionDetails);
     }
 
-    public function provideActionsForVisitIds(&$actions, $idVisits)
+    public function provideActionsForVisitIds(&$actions, $idVisits, $segment = false)
     {
         $this->lastVisitIds    = $idVisits;
         $this->lastGoalResults = [];

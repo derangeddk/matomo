@@ -99,8 +99,9 @@ abstract class VisitorDetailsAbstract
      *
      * @param array $actions   action set to enrich
      * @param array $visitIds  list of visit ids
+     * @param string|false $segment
      */
-    public function provideActionsForVisitIds(&$actions, $visitIds)
+    public function provideActionsForVisitIds(&$actions, $visitIds, $segment = false)
     {
     }
 

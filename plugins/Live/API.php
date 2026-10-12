@@ -229,7 +229,7 @@ class API extends \Piwik\Plugin\API
         $filterSortOrder = \Piwik\Request::fromRequest()->getStringParameter('filter_sort_order', '');
 
         $dataTable = $this->loadLastVisitsDetailsFromDatabase($idSites, $period, $date, $segment, $filterOffset, $filterLimit, $minTimestamp, $filterSortOrder, $visitorId = false);
-        $this->addFilterToCleanVisitors($dataTable, $flat, $doNotFetchActions);
+        $this->addFilterToCleanVisitors($dataTable, $flat, $doNotFetchActions, false, $segment);
 
         $filterSortColumn = \Piwik\Request::fromRequest()->getStringParameter('filter_sort_column', '');
 
@@ -286,7 +286,7 @@ class API extends \Piwik\Plugin\API
             false,
             $visitorId
         );
-        $this->addFilterToCleanVisitors($visits, $flat = false, $doNotFetchActions = false, $filterNow = true);
+        $this->addFilterToCleanVisitors($visits, $flat = false, $doNotFetchActions = false, $filterNow = true, $segment);
 
         if ($visits->getRowsCount() == 0) {
             return array();
@@ -407,19 +407,21 @@ class API extends \Piwik\Plugin\API
      * @param bool $flat
      * @param bool $doNotFetchActions
      * @param bool $filterNow
+     * @param string $segment
      */
     private function addFilterToCleanVisitors(
         DataTable $dataTable,
         $flat = false,
         $doNotFetchActions = false,
-        $filterNow = false
+        $filterNow = false,
+        $segment = false,
     ): void {
         $filter = 'queueFilter';
         if ($filterNow) {
             $filter = 'filter';
         }
 
-        $dataTable->$filter(function ($table) use ($flat, $doNotFetchActions) {
+        $dataTable->$filter(function ($table) use ($flat, $doNotFetchActions, $segment) {
             /** @var DataTable $table */
             $visitorFactory = new VisitorFactory();
 
@@ -434,7 +436,7 @@ class API extends \Piwik\Plugin\API
                 $visitorDetailsManipulators = Visitor::getAllVisitorDetailsInstances();
 
                 foreach ($visitorDetailsManipulators as $instance) {
-                    $instance->provideActionsForVisitIds($actionsByVisitId, $visitIds);
+                    $instance->provideActionsForVisitIds($actionsByVisitId, $visitIds, $segment);
                 }
             }
 

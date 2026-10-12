@@ -28,9 +28,9 @@ class VisitorDetails extends VisitorDetailsAbstract
         $visitor['interactions'] = $this->details['visit_total_interactions'];
     }
 
-    public function provideActionsForVisitIds(&$actions, $visitIds)
+    public function provideActionsForVisitIds(&$actions, $visitIds, $segment = false)
     {
-        $actionDetails = $this->queryActionsForVisits($visitIds);
+        $actionDetails = $this->queryActionsForVisits($visitIds, $segment);
         // use while / array_shift combination instead of foreach to save memory
         while (is_array($actionDetails) && count($actionDetails)) {
             $action  = array_shift($actionDetails);
@@ -298,9 +298,10 @@ class VisitorDetails extends VisitorDetailsAbstract
 
     /**
      * @param array $idVisits
+     * @param string|false $segment
      * @return array
      */
-    protected function queryActionsForVisits($idVisits)
+    protected function queryActionsForVisits($idVisits, $segment = false)
     {
         $customFields = array();
         $customJoins  = array();
@@ -321,6 +322,22 @@ class VisitorDetails extends VisitorDetailsAbstract
 					log_link_visit_action.time_dom_completion +
 					log_link_visit_action.time_dom_processing +
 					log_link_visit_action.time_on_load ) AS pageLoadTime,';
+        }
+
+        $bind = array();
+        $whereClause = "log_link_visit_action.idvisit IN ('" . implode("','", $idVisits) . "')";
+
+        if($segment) {
+            $segment = new \Piwik\Segment($segment, []);
+
+            if (!$segment->isEmpty()) {
+                $tableName = Common::prefixTable('log_link_visit_action');
+                $subSelect = "$tableName.idlink_va";
+
+                $segmentQuery = $segment->getSelectQuery($subSelect, $tableName, $whereClause, array());
+                $whereClause = "$tableName.idlink_va IN (" . $segmentQuery['sql'] . ")";
+                $bind = $segmentQuery['bind'];
+            }
         }
 
         $sql           = "
@@ -348,10 +365,10 @@ class VisitorDetails extends VisitorDetailsAbstract
 					LEFT JOIN `" . Common::prefixTable('log_action') . "` AS log_action_title
 					ON  log_link_visit_action.idaction_name = log_action_title.idaction
 					" . implode(" ", $customJoins) . "
-				WHERE log_link_visit_action.idvisit IN ('" . implode("','", $idVisits) . "')
+				WHERE $whereClause
 				ORDER BY log_link_visit_action.idvisit, log_link_visit_action.server_time, log_link_visit_action.idlink_va
 				 ";
-        $actionDetails = $this->getDb()->fetchAll($sql);
+        $actionDetails = $this->getDb()->fetchAll($sql, $bind);
         return $actionDetails;
     }
 
