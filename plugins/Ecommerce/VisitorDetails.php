@@ -90,7 +90,7 @@ class VisitorDetails extends VisitorDetailsAbstract
         return [[ 15, $view->render() ]];
     }
 
-    public function provideActionsForVisitIds(&$actions, $idVisits)
+    public function provideActionsForVisitIds(&$actions, $idVisits, $segment = false)
     {
         $ecommerceDetails = $this->queryEcommerceConversionsForVisits($idVisits);
 

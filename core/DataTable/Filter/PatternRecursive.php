@@ -70,9 +70,16 @@ class PatternRecursive extends BaseFilter
                 }
             }
 
+            // TODO: this is extremely hacky to make label queries also search url for matches...
+            $altMatch = false;
+            if ($this->columnToFilter === "label") {
+                $altMatch = Pattern::match($this->patternToSearchQuoted, $row->getMetadata("url"), $invertedMatch = false);
+            }
+
             if (
                 $patternNotFoundInChildren
                 && !Pattern::match($this->patternToSearchQuoted, $row->getColumn($this->columnToFilter), $invertedMatch = false)
+                && !$altMatch
             ) {
                 $table->deleteRow($key);
             }
