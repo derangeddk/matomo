@@ -132,6 +132,11 @@ class API extends \Piwik\Plugin\API
             $flat
         );
 
+        foreach($dataTable->getRowsWithoutSummaryRow() as $row) {
+            $url = $row->getMetadata('url');
+            $row->setColumn('label', $url);
+        }
+
         $this->filterActionsDataTable($dataTable, Action::TYPE_PAGE_URL);
 
         if ($flat) {
